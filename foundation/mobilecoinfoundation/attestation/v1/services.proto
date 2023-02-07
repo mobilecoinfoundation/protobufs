@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package mobilecoinfoundation.attestation.v1;
+
+import "mobilecoinfoundation/attestation/v1/attest.proto";
+
+// Attest with an enclave
+service AttestService {
+    rpc Attest(mobilecoinfoundation.attestation.v1.AttestRequest) returns (mobilecoinfoundation.attestation.v1.AttestResponse);
+    rpc MutualAttest(mobilecoinfoundation.attestation.v1.MutualAttestRequest) returns (mobilecoinfoundation.attestation.v1.MutualAttestResponse);
+}

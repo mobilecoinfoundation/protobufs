@@ -1,5 +1,5 @@
 version: v1
-name: buf.build/nick-mc/attestapis
+name: buf.build/mobilecoin/foundation
 deps:
   - buf.build/googleapis/googleapis
 breaking:
