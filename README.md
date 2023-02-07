@@ -1,2 +1,2 @@
-# probufs
+# protobufs
 MobileCoin Protocol Buffers Definitions (Future)
