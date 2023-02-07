@@ -7,6 +7,13 @@ on:
   pull_request:
 
 jobs:
+  buf-lint:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+      - uses: bufbuild/buf-setup-action@v1.13.1
+      - uses: bufbuild/buf-lint-action@v1
+
   markdown-lint:
     runs-on: ubuntu-22.04
     steps:
@@ -20,6 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{always()}} && ${{failure()}} && ${{ github.event_name }} == 'push'
     needs:
+      - buf-lint
       - markdown-lint
     steps:
       - name: Notify Discord on failure

@@ -1,0 +1,102 @@
+syntax = "proto3";
+
+package attest.v1;
+
+// Attest with an enclave
+service AttestService {
+    rpc Attest(AttestRequest) returns (AttestResponse);
+    rpc MutualAttest(MutualAttestRequest) returns (MutualAttestResponse);
+}
+
+// Message used once communication has been attested.
+message AttestedMessage {
+    // The encrypted message
+    bytes   ciphertext = 1;
+    // Channel ID for the session.
+    //
+    // Also called channel binding
+    bytes   channel_id = 2;
+    // Additional Authentication Data (aad) to use with `ciphertext`
+    bytes   aad = 3;
+    // Nonce for this message. 
+    //
+    // Like most nonce this should be unique per message.
+    fixed64 nonce = 4;
+}
+
+// Request attestation between enclaves.
+//
+// Used when enclaves wish to communicate with each other. The enclaves are the
+// exact same build, but running on different machines. See `AttestRequest`.
+message MutualAttestRequest {
+    bytes noise = 1;
+    AttestationEvidence evidence = 2;
+}
+
+// Attestation evidence that needs to be verified by the recipient
+message MutualAttestResponse {
+    bytes noise = 1;
+    AttestationEvidence evidence = 2;
+}
+
+// Attestation evidence that needs to be verified by the recipient
+message AttestResponse {
+    bytes noise = 1;
+    AttestationEvidence evidence = 2;
+}
+
+
+// Attestation request from (dissimilar) client
+//
+// Used by most clients for initiating communication with an enclave. See also
+// `MutualAttestRequest`
+message AttestRequest {
+    bytes noise = 1;
+}
+
+// Evidence to prove correctness of enclave
+message AttestationEvidence {
+    oneof evidence {
+        QuoteV3Evidence quote3 = 1;
+    }
+}
+
+// Json data with signature info
+message SignedJson {
+    // Signature over the `json` field.
+    bytes signature = 1;
+    // Json contents
+    string         json = 2;
+    // DER chain providing the signing key. The clients are responsible for
+    // ensuring the correctness of the CA key.
+    repeated bytes der_chain = 3;
+}
+
+// Attestation evidence for the quote3 version
+//
+// The quote3 version is also known as DCAP.
+message QuoteV3Evidence {
+    QuoteV3 quote = 1;
+    TcbInfo tcb = 2;
+}
+
+// Version 3 quote 
+//
+// The byte layout is specified in, 
+// <https://download.01.org/intel-sgx/latest/dcap-latest/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf>
+message QuoteV3 {
+    bytes quote = 1;
+}
+
+// TCB(Trusted Computing Base) info
+//
+// Identifies the hardware and firmware components that the enclave is running
+// on.
+//
+// The `json` field will contain *only* the `tcbInfo` object from 
+// <https://api.portal.trustedservices.intel.com/documentation#pcs-tcb-info-model-v3>
+// This is to save clients the work of separating it to verify it with the
+// `signature` property
+message TcbInfo {
+    SignedJson tcb = 1;
+}
