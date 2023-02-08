@@ -1,5 +1,5 @@
 version: v1
-name: buf.build/mobilecoin/foundation
+name: buf.build/mobilecoinfoundation/mobilecoinfoundation
 deps:
   - buf.build/googleapis/googleapis
 breaking:
