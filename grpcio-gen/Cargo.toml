@@ -12,3 +12,4 @@ categories = ['api-bindings', 'command-line-utilities']
 keywords = ['grpc', 'prost']
 
 [dependencies]
+clap = "4.1.4"
