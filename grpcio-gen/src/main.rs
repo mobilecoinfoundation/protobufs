@@ -3,11 +3,11 @@
 #![doc = include_str!("../README.md")]
 #![deny(missing_docs, missing_debug_implementations, unsafe_code)]
 
-use clap::{Parser, Subcommand};
+use clap::Parser;
 
 /// Generates rust bindings for grpcio using prost
-#[derive(Parser)]
-#[command(author, version, about, long_about = None)]
+#[derive(Parser, Debug)]
+#[command(version, about, long_about = None)]
 struct Cli {
     /// Proto files to generate code from
     #[arg()]
@@ -20,6 +20,10 @@ struct Cli {
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let cli = Cli::parse();
 
+    println!("Hello {}!", cli.out_dir);
+    println!("Hello {}!", cli.protos);
+    Ok(())
 
 }
