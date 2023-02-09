@@ -1,0 +1,11 @@
+[package]
+name = "mc-protos"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+prost = "0.10.0"
+
+[features]
+default = []
+## @@protoc_insertion_point(features)

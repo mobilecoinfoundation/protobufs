@@ -1,0 +1,14 @@
+version: v1
+# Generated with the command
+#  `buf generate`
+# See https://github.com/neoeinstein/protoc-gen-prost/issues/3 can't use
+# template file with remote plugin :(
+plugins:
+  - name: prost
+    out: gen/src
+  - name: tonic
+    out: gen/src
+  - name: prost-crate
+    out: gen
+    opt:
+      - gen_crate=template/Cargo.toml
