@@ -12,4 +12,6 @@ categories = ['api-bindings', 'command-line-utilities']
 keywords = ['grpc', 'prost']
 
 [dependencies]
+anyhow = "1.0.69"
 clap = { version = "4.1.4", features = [ "derive" ] }
+grpcio-compiler = { version = "0.12.0", features = [ "prost-codec" ] }
