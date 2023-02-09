@@ -5,6 +5,7 @@
 
 use anyhow::Result;
 use std::env::current_dir;
+use std::fs;
 use std::path::PathBuf;
 use clap::Parser;
 
@@ -29,6 +30,10 @@ fn main() -> Result<()> {
     let cli = Cli::parse();
 
     let out_dir = cli.out_dir.unwrap_or_else(|| current_dir().expect("Failed to get current directory."));
+
+    // Will fail with Error: No such file or directory (os error 2) if the out
+    // dir doesn't exist yet
+    fs::create_dir_all(&out_dir)?;
 
     grpcio_compiler::prost_codegen::compile_protos(
         &cli.protos,
