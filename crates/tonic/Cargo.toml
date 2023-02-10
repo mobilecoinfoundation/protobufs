@@ -1,0 +1,15 @@
+[package]
+name = "mc-probufs-tonic"
+version = "0.1.0"
+edition = "2021"
+authors = ["MobileCoin"]
+rust-version = "1.65"
+license = "Apache-2.0"
+readme = "README.md"
+repository = "https://github.com/mobilecoinfoundation/probufs"
+description = "Tonic protobufs client and server"
+categories = ["api-bindings", "encoding"]
+keywords = ["grpc", "protobuf", "rpc"]
+
+[dependencies]
+mc-probufs-messages = { path = "../messages", version = "0.1.0" }

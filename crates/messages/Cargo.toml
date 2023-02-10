@@ -1,0 +1,14 @@
+[package]
+name = "mc-probufs-messages"
+version = "0.1.0"
+edition = "2021"
+authors = ["MobileCoin"]
+rust-version = "1.65"
+license = "Apache-2.0"
+readme = "README.md"
+repository = "https://github.com/mobilecoinfoundation/probufs"
+description = "Common grpc messages"
+categories = ["encoding"]
+keywords = ["protobuf"]
+
+[dependencies]
