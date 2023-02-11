@@ -1,0 +1,133 @@
+syntax = "proto3";
+
+// The APIs required to interact with the `AttestService`.
+// 
+// There are two ways to attest with an encalve:
+// 
+// 1. Client to enclave. Used when a (non enclave) client wants to attest that the
+//    enclave is a predetermined software image.
+// 2. Enclave to enclave. This is for attesting between two trusted enclaves
+//    running the same software image.
+// 
+// ## Client to Enclave
+// 
+// ```mermaid
+// sequenceDiagram
+//     autonumber
+//     Client->>+Enclave: AttestRequest
+//     Enclave->>+Client: AttestResponse
+//     Client->>Client: Verify AttestResponse contents
+//     loop Ongoing Session
+//         Client-->>Enclave: AttestedMessage
+//         Enclave-->>Client: AttestedMessge
+//     end
+// ```
+// 
+// ## Enclave to Enclave
+// 
+// ```mermaid
+// sequenceDiagram
+//     autonumber
+//     Enclave_1->>+Enclave_2: MutualAttestRequest
+//     Enclave_2->>Enclave_2: Verify MutualAttestResponse contents
+//     Enclave_2->>+Enclave_1: MutualAttestResponse
+//     Enclave_1->>Enclave_1: Verify MutualAttestResponse contents
+//     loop Ongoing Session
+//         Enclave_1-->>Enclave_2: AttestedMessage
+//         Enclave_2-->>Enclave_1: AttestedMessage
+//     end
+// ```
+package mobilecoinfoundation.attestation.v1;
+
+// Message used once communication has been attested.
+message AttestedMessage {
+    // The encrypted message
+    bytes   ciphertext = 1;
+    // Channel ID for the session.
+    //
+    // Also called channel binding
+    bytes   channel_id = 2;
+    // Additional Authentication Data (aad) to use with `ciphertext`
+    bytes   aad = 3;
+    // Nonce for this message. 
+    //
+    // Like most nonce this should be unique per message.
+    fixed64 nonce = 4;
+}
+
+// Request attestation between enclaves.
+//
+// Used when enclaves wish to communicate with each other. The enclaves are the
+// exact same build, but running on different machines. See `AttestRequest`.
+message MutualAttestRequest {
+    bytes noise = 1;
+    AttestationEvidence evidence = 2;
+}
+
+// Attestation evidence that needs to be verified by the recipient
+message MutualAttestResponse {
+    bytes noise = 1;
+    AttestationEvidence evidence = 2;
+}
+
+// Attestation evidence that needs to be verified by the recipient
+message AttestResponse {
+    bytes noise = 1;
+    AttestationEvidence evidence = 2;
+}
+
+
+// Attestation request from (dissimilar) client
+//
+// Used by most clients for initiating communication with an enclave. See also
+// `MutualAttestRequest`
+message AttestRequest {
+    bytes noise = 1;
+}
+
+// Evidence to prove correctness of enclave
+message AttestationEvidence {
+    oneof evidence {
+        QuoteV3Evidence quote3 = 1;
+    }
+}
+
+// Json data with signature info
+message SignedJson {
+    // Signature over the `json` field.
+    bytes signature = 1;
+    // Json contents
+    string         json = 2;
+    // DER chain providing the signing key. The clients are responsible for
+    // ensuring the correctness of the CA key.
+    repeated bytes der_chain = 3;
+}
+
+// Attestation evidence for the quote3 version
+//
+// The quote3 version is also known as DCAP.
+message QuoteV3Evidence {
+    QuoteV3 quote = 1;
+    TcbInfo tcb = 2;
+}
+
+// Version 3 quote 
+//
+// The byte layout is specified in, 
+// <https://download.01.org/intel-sgx/latest/dcap-latest/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf>
+message QuoteV3 {
+    bytes quote = 1;
+}
+
+// TCB(Trusted Computing Base) info
+//
+// Identifies the hardware and firmware components that the enclave is running
+// on.
+//
+// The `json` field will contain *only* the `tcbInfo` object from 
+// <https://api.portal.trustedservices.intel.com/documentation#pcs-tcb-info-model-v3>
+// This is to save clients the work of separating it to verify it with the
+// `signature` property
+message TcbInfo {
+    SignedJson tcb = 1;
+}
