@@ -29,11 +29,12 @@ syntax = "proto3";
 // sequenceDiagram
 //     autonumber
 //     Enclave_1->>+Enclave_2: MutualAttestRequest
+//     Enclave_2->>Enclave_2: Verify MutualAttestResponse contents
 //     Enclave_2->>+Enclave_1: MutualAttestResponse
 //     Enclave_1->>Enclave_1: Verify MutualAttestResponse contents
 //     loop Ongoing Session
 //         Enclave_1-->>Enclave_2: AttestedMessage
-//         Enclave_2-->>Enclave_1: AttestedMessge
+//         Enclave_2-->>Enclave_1: AttestedMessage
 //     end
 // ```
 package mobilecoinfoundation.attestation.v1;
