@@ -1,13 +1,16 @@
 [workspace]
 members = [
-    "grpcio",
-    "messages",
-    "tonic",
+    "attestation/grpcio",
+    "attestation/tonic",
+    "attestation/protobuf-types",
 ]
 
 # We need to explicitly specify resolver 2.
 # We shouldn't have to per https://doc.rust-lang.org/edition-guide/rust-2021/default-cargo-resolver.html, but that does not appear to be the case
 resolver = "2"
+
+[workspace.package]
+rust-version = "1.67.0"
 
 [profile.release]
 lto = "thin"
@@ -24,5 +27,5 @@ tag-name = "v{{version}}"
 # common format and are always next to the Cargo.toml for their respective
 # package.
 pre-release-replacements = [
-    {file="README.md", search="mc-probufs-[a-z-]+/[0-9.]+", replace="{{crate_name}}/{{version}}"},
+    {file="README.md", search="mc-[a-z-]+/[0-9.]+", replace="{{crate_name}}/{{version}}"},
 ]
