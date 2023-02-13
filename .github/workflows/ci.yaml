@@ -6,13 +6,30 @@ on:
       - 'main'
   pull_request:
 
+env:
+  CARGO_INCREMENTAL: 0
+  RUSTFLAGS: "-Dwarnings"
+  CARGO_UNSTABLE_SPARSE_REGISTRY: true
+
 jobs:
   buf-lint:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
       - uses: bufbuild/buf-setup-action@v1.14.0
+        with:
+          github_token: ${{ github.token }}
       - uses: bufbuild/buf-lint-action@v1
+
+  rustfmt:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - uses: r7kamura/rust-problem-matchers@v1
+      - run: cargo fmt --all -- --check
 
   markdown-lint:
     runs-on: ubuntu-22.04
@@ -23,12 +40,144 @@ jobs:
         with:
           globs: "**/*.md"
 
+  deny:
+    runs-on: ubuntu-22.04
+    needs:
+      - "rustfmt"
+      - "markdown-lint"
+    strategy:
+      matrix:
+        checks:
+          - advisories
+          - bans licenses sources
+    # Prevent sudden announcement of a new advisory from failing ci:
+    continue-on-error: ${{ matrix.checks == 'advisories' }}
+    steps:
+    - uses: actions/checkout@v3
+    - uses: EmbarkStudios/cargo-deny-action@v1
+      with:
+        command: check ${{ matrix.checks }}
+
+  sort:
+    runs-on: ubuntu-22.04
+    needs:
+      - "rustfmt"
+      - "markdown-lint"
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo install cargo-sort
+      - run: cargo sort --workspace --check >/dev/null
+
+  clippy:
+    runs-on: ubuntu-22.04
+    needs:
+      - "rustfmt"
+      - "markdown-lint"
+    strategy:
+      matrix:
+        rust:
+          - stable
+          - beta
+    # Prevent beta warnings from causing CI failure
+    continue-on-error: ${{ matrix.rust == 'beta' }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.rust }}
+          components: clippy
+      - uses: r7kamura/rust-problem-matchers@v1
+      - run: cargo +${{ matrix.rust }} clippy --all --all-features -- -D warnings
+
+  build:
+    runs-on: ubuntu-22.04
+    needs:
+      - "rustfmt"
+      - "markdown-lint"
+    strategy:
+      matrix:
+        rust:
+          - stable
+          - beta
+          - nightly-2023-01-04
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.rust }}
+      - uses: r7kamura/rust-problem-matchers@v1
+      - run: cargo +${{ matrix.rust }} build --release
+
+  test:
+    runs-on: ubuntu-22.04
+    needs:
+      - "rustfmt"
+      - "markdown-lint"
+    strategy:
+      matrix:
+        rust:
+          - stable
+          - beta
+          - nightly-2023-01-04
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.rust }}
+      - uses: r7kamura/rust-problem-matchers@v1
+      - run: cargo +${{ matrix.rust }} test --release
+
+  doc:
+    runs-on: ubuntu-22.04
+    needs:
+      - "rustfmt"
+      - "markdown-lint"
+    strategy:
+      matrix:
+        rust:
+          - stable
+          - beta
+    # Prevent beta warnings from causing CI failure
+    continue-on-error: ${{ matrix.rust == 'beta' }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.rust }}
+      - uses: r7kamura/rust-problem-matchers@v1
+      - run: cargo +${{ matrix.rust }} doc --release --no-deps
+
+  coverage:
+    runs-on: ubuntu-22.04
+    needs:
+      - "rustfmt"
+      - "markdown-lint"
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: llvm-tools-preview
+      - uses: taiki-e/install-action@cargo-llvm-cov
+      - run: cargo llvm-cov --workspace --lcov --output-path lcov.info
+      - uses: codecov/codecov-action@v3
+        with:
+          files: lcov.info
+
   notify:
     runs-on: ubuntu-latest
-    if: ${{always()}} && ${{failure()}} && ${{ github.event_name }} == 'push'
+    if: failure() && ${{ github.event_name }} == 'push'
     needs:
       - buf-lint
+      - rustfmt
       - markdown-lint
+      - deny
+      - sort
+      - clippy
+      - build
+      - test
+      - doc
+      - coverage
     steps:
       - name: Notify Discord on failure
         uses: sarisia/actions-status-discord@v1
