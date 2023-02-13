@@ -1,8 +1,8 @@
 [workspace]
 members = [
-    "attestation/grpcio",
-    "attestation/tonic",
-    "attestation/protobuf-types",
+    "mobilecoinfoundation/attestation/grpcio",
+    "mobilecoinfoundation/attestation/tonic",
+    "mobilecoinfoundation/attestation/messages",
 ]
 
 # We need to explicitly specify resolver 2.

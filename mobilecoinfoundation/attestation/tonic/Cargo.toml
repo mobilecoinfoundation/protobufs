@@ -1,5 +1,5 @@
 [package]
-name = "mc-attestation-grpcio"
+name = "mc-attestation-tonic"
 version = "0.1.0"
 edition = "2021"
 authors = ["MobileCoin"]
@@ -7,9 +7,9 @@ rust-version = { workspace = true }
 license = "Apache-2.0"
 readme = "README.md"
 repository = "https://github.com/mobilecoinfoundation/protobufs"
-description = "grpcio enclave attestation gRPC client and server"
+description = "Tonic enclave attestation gRPC client and server"
 categories = ["api-bindings", "encoding"]
 keywords = ["grpc", "protobuf", "rpc"]
 
 [dependencies]
-mc-attestation-protobuf-types = { path = "../protobuf-types", version = "0.1.0" }
+mc-attestation-messages = { path = "../messages", version = "0.1.0" }
