@@ -1,8 +1,14 @@
 protos:
   - '**.protos'
+  
+rust:
+  - '**.rs'
+  - '**/Cargo.lock'
+  - '**/Cargo.toml'
 
 dependencies:
   - '**/buf.lock'
+  - '**/Cargo.lock'
 
 github_actions:
   - '.github/workflows/**'
