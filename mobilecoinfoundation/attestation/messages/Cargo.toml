@@ -1,0 +1,14 @@
+[package]
+name = "mc-attestation-messages"
+version = "0.1.0"
+edition = "2021"
+authors = ["MobileCoin"]
+rust-version = { workspace = true }
+license = "Apache-2.0"
+readme = "README.md"
+repository = "https://github.com/mobilecoinfoundation/protobufs"
+description = "Common grpc messages"
+categories = ["encoding"]
+keywords = ["protobuf"]
+
+[dependencies]
