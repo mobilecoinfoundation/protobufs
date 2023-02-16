@@ -12,4 +12,8 @@ categories = ["api-bindings", "encoding"]
 keywords = ["grpc", "protobuf", "rpc"]
 
 [dependencies]
+grpcio = { version = "0.12.0", features = ["prost-codec"] }
 mc-attestation-messages = { path = "../messages", version = "0.1.0" }
+
+[build-dependencies]
+grpcio-compiler = { version = "0.12.1", features = ["prost-codec"] }
