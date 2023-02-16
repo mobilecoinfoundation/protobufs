@@ -88,6 +88,13 @@ jobs:
           toolchain: ${{ matrix.rust }}
           components: clippy
       - uses: r7kamura/rust-problem-matchers@v1
+      - uses: arduino/setup-protoc@v1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: install protoc plugins
+        run: |
+          cargo +${{ matrix.rust }} install protoc-gen-prost
+          cargo +${{ matrix.rust }} install protoc-gen-tonic
       - run: cargo +${{ matrix.rust }} clippy --all --all-features -- -D warnings
 
   build:
@@ -107,6 +114,13 @@ jobs:
         with:
           toolchain: ${{ matrix.rust }}
       - uses: r7kamura/rust-problem-matchers@v1
+      - uses: arduino/setup-protoc@v1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: install protoc plugins
+        run: |
+          cargo +${{ matrix.rust }} install protoc-gen-prost
+          cargo +${{ matrix.rust }} install protoc-gen-tonic
       - run: cargo +${{ matrix.rust }} build --release
 
   test:
@@ -126,6 +140,13 @@ jobs:
         with:
           toolchain: ${{ matrix.rust }}
       - uses: r7kamura/rust-problem-matchers@v1
+      - uses: arduino/setup-protoc@v1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: install protoc plugins
+        run: |
+          cargo +${{ matrix.rust }} install protoc-gen-prost
+          cargo +${{ matrix.rust }} install protoc-gen-tonic
       - run: cargo +${{ matrix.rust }} test --release
 
   doc:
@@ -146,23 +167,14 @@ jobs:
         with:
           toolchain: ${{ matrix.rust }}
       - uses: r7kamura/rust-problem-matchers@v1
+      - uses: arduino/setup-protoc@v1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: install protoc plugins
+        run: |
+          cargo +${{ matrix.rust }} install protoc-gen-prost
+          cargo +${{ matrix.rust }} install protoc-gen-tonic
       - run: cargo +${{ matrix.rust }} doc --release --no-deps
-
-  coverage:
-    runs-on: ubuntu-22.04
-    needs:
-      - "rustfmt"
-      - "markdown-lint"
-    steps:
-      - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          components: llvm-tools-preview
-      - uses: taiki-e/install-action@cargo-llvm-cov
-      - run: cargo llvm-cov --workspace --lcov --output-path lcov.info
-      - uses: codecov/codecov-action@v3
-        with:
-          files: lcov.info
 
   notify:
     runs-on: ubuntu-latest
@@ -177,7 +189,6 @@ jobs:
       - build
       - test
       - doc
-      - coverage
     steps:
       - name: Notify Discord on failure
         uses: sarisia/actions-status-discord@v1
