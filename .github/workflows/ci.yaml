@@ -1,6 +1,7 @@
+---
 name: ci
 
-on:
+"on":
   push:
     branches:
       - 'main'
@@ -12,7 +13,7 @@ env:
   CARGO_UNSTABLE_SPARSE_REGISTRY: true
 
 jobs:
-  buf-lint:
+  lint:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
@@ -20,49 +21,39 @@ jobs:
         with:
           github_token: ${{ github.token }}
       - uses: bufbuild/buf-lint-action@v1
-
-  rustfmt:
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt
       - uses: r7kamura/rust-problem-matchers@v1
       - run: cargo fmt --all -- --check
-
-  markdown-lint:
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v3
       - uses: xt0rted/markdownlint-problem-matcher@v2
       - uses: DavidAnson/markdownlint-cli2-action@v9
         with:
           globs: "**/*.md"
+      # FIXME: Add yamllint problem matcher
+      - run: yamllint -s .
 
   deny:
     runs-on: ubuntu-22.04
     needs:
-      - "rustfmt"
-      - "markdown-lint"
+      - lint
     strategy:
       matrix:
         checks:
           - advisories
           - bans licenses sources
-    # Prevent sudden announcement of a new advisory from failing ci:
-    continue-on-error: ${{ matrix.checks == 'advisories' }}
+      fail-fast: false
     steps:
-    - uses: actions/checkout@v3
-    - uses: EmbarkStudios/cargo-deny-action@v1
-      with:
-        command: check ${{ matrix.checks }}
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: EmbarkStudios/cargo-deny-action@v1
+        with:
+          command: check ${{ matrix.checks }}
 
   sort:
     runs-on: ubuntu-22.04
     needs:
-      - "rustfmt"
-      - "markdown-lint"
+      - lint
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
@@ -72,15 +63,13 @@ jobs:
   clippy:
     runs-on: ubuntu-22.04
     needs:
-      - "rustfmt"
-      - "markdown-lint"
+      - lint
     strategy:
       matrix:
         rust:
           - stable
           - beta
-    # Prevent beta warnings from causing CI failure
-    continue-on-error: ${{ matrix.rust == 'beta' }}
+      fail-fast: false
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@master
@@ -95,13 +84,13 @@ jobs:
         run: |
           cargo +${{ matrix.rust }} install protoc-gen-prost
           cargo +${{ matrix.rust }} install protoc-gen-tonic
-      - run: cargo +${{ matrix.rust }} clippy --all --all-features -- -D warnings
+      - run: |
+          cargo +${{ matrix.rust }} clippy --all --all-features -- -D warnings
 
   build:
     runs-on: ubuntu-22.04
     needs:
-      - "rustfmt"
-      - "markdown-lint"
+      - lint
     strategy:
       matrix:
         rust:
@@ -126,8 +115,7 @@ jobs:
   test:
     runs-on: ubuntu-22.04
     needs:
-      - "rustfmt"
-      - "markdown-lint"
+      - lint
     strategy:
       matrix:
         rust:
@@ -152,14 +140,13 @@ jobs:
   doc:
     runs-on: ubuntu-22.04
     needs:
-      - "rustfmt"
-      - "markdown-lint"
+      - lint
     strategy:
       matrix:
         rust:
           - stable
           - beta
-    # Prevent beta warnings from causing CI failure
+    # Prevent beta docs warnings from causing CI failure
     continue-on-error: ${{ matrix.rust == 'beta' }}
     steps:
       - uses: actions/checkout@v3
@@ -178,11 +165,9 @@ jobs:
 
   notify:
     runs-on: ubuntu-latest
-    if: failure() && ${{ github.event_name }} == 'push'
+    if: github.event_name == 'push' && failure()
     needs:
-      - buf-lint
-      - rustfmt
-      - markdown-lint
+      - lint
       - deny
       - sort
       - clippy
@@ -193,12 +178,18 @@ jobs:
       - name: Notify Discord on failure
         uses: sarisia/actions-status-discord@v1
         with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK }}
           username: "Github Actions"
           status: Failure
+          color: 0xff0000
           nodetail: true
-          title: "Workflow: ${{ github.workflow }}"
-          url: ${{ github.repositoryUrl }}/actions/runs/${{ github.run_id }}
-          description: |
-            [@${{ github.actor }}](${{ github.server_url }}/${{ github.actor }}] was the last one to touch ${{ github.repository }}, is all I'm saying...
+          # yamllint disable rule:line-length
+          title: "${{ github.repository }} ${{ github.workflow }} has failed on ${{ github.event_name }} to ${{ github.ref_name }}"
+          url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          description: >
+            [`@${{ github.actor }}`](${{ github.server_url }}/${{ github.actor }})
+            was the last one to touch
+            [that repository](${{ github.server_url }}/${{ github.repository }}),
+            is all I'm saying.
           avatar_url: "https://media0.giphy.com/media/oe33xf3B50fsc/200.gif"
-          webhook: ${{ secrets.DISCORD_WEBHOOK }}
+          # yamllint enable rule:line-length

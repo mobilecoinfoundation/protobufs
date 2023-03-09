@@ -1,3 +1,4 @@
+---
 version: v1
 name: buf.build/mobilecoinfoundation/mobilecoinfoundation
 deps:
