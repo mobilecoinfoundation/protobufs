@@ -77,7 +77,7 @@ jobs:
           toolchain: ${{ matrix.rust }}
           components: clippy
       - uses: r7kamura/rust-problem-matchers@v1
-      - uses: arduino/setup-protoc@v1
+      - uses: arduino/setup-protoc@v2
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
       - name: install protoc plugins
@@ -103,7 +103,7 @@ jobs:
         with:
           toolchain: ${{ matrix.rust }}
       - uses: r7kamura/rust-problem-matchers@v1
-      - uses: arduino/setup-protoc@v1
+      - uses: arduino/setup-protoc@v2
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
       - name: install protoc plugins
@@ -128,7 +128,7 @@ jobs:
         with:
           toolchain: ${{ matrix.rust }}
       - uses: r7kamura/rust-problem-matchers@v1
-      - uses: arduino/setup-protoc@v1
+      - uses: arduino/setup-protoc@v2
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
       - name: install protoc plugins
@@ -154,7 +154,7 @@ jobs:
         with:
           toolchain: ${{ matrix.rust }}
       - uses: r7kamura/rust-problem-matchers@v1
-      - uses: arduino/setup-protoc@v1
+      - uses: arduino/setup-protoc@v2
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
       - name: install protoc plugins
